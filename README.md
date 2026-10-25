@@ -36,7 +36,9 @@ The backend calls Elexon's public BMRS Insights API ([WINDFOR stream](https://bm
 
 ## Deployment
 
-The Docker image serves the built React app and Python API from one process, suitable for a container host such as Heroku. Add the deployed URL here after deployment. The app listens on the host-provided `PORT` (default 8080).
+For Vercel, the root `vercel.json` defines the Vite frontend and FastAPI backend as two services under one deployment URL. Select the **Services** framework when importing the repository if Vercel does not select it automatically. Requests to `/api/*` go to FastAPI; all other paths go to the frontend. Vercel Services is currently in beta.
+
+The Docker image also serves the built React app and Python API from one process on container hosts such as Heroku. It listens on the host-provided `PORT` (default 8080). Add the deployed URL here after deployment.
 
 ## AI assistance
 
