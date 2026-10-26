@@ -12,3 +12,8 @@
 .control-item input[type=time]{width:112px;min-width:112px;padding-right:2px;color-scheme:light;font-variant-numeric:tabular-nums}.cutoff-control{grid-template-columns:26px 112px auto}
 .control-bar{border-color:#dfe5dc;box-shadow:0 6px 18px rgba(31,48,35,.04)}.metric-card,.chart-panel,.daily-panel,.method-panel,.table-panel{border-color:#e1e6de}
 @media(max-width:760px){.content>.heading-row{padding:21px 18px 72px}.content>.heading-row .heading-actions{align-self:flex-start}.content>.heading-row:after{left:18px;right:18px;padding:11px 0;line-height:1.6;white-space:normal}.control-item input[type=time]{width:106px;min-width:106px}.cutoff-control{grid-template-columns:26px 106px auto}}
+
+.cutoff-control .control-icon{grid-column:1;grid-row:1/3}
+.cutoff-control label{grid-column:2/4;grid-row:1}
+.cutoff-control input{grid-column:2;grid-row:2}
+.cutoff-control .tz-tag{grid-column:3;grid-row:2;justify-self:start;margin-left:0}
