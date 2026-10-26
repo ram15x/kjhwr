@@ -17,11 +17,11 @@ function App() {
   const [error, setError] = useState('')
   const requestId = useRef(0)
 
-  async function loadData() {
+  async function loadData(forceRefresh = false) {
     const currentRequest = ++requestId.current
     setLoading(true); setError('')
     try {
-      const response = await fetch(`/api/analysis?month=${encodeURIComponent(month)}&cutoff=${encodeURIComponent(cutoff)}`)
+      const response = await fetch(`/api/analysis?month=${encodeURIComponent(month)}&cutoff=${encodeURIComponent(cutoff)}${forceRefresh ? '&refresh=true' : ''}`)
       const body = await response.json()
       if (!response.ok) throw new Error(body.detail || `Request failed (${response.status})`)
       if (currentRequest !== requestId.current) return
@@ -38,7 +38,7 @@ function App() {
   const daySeries = useMemo(() => (payload?.series || []).filter((p) => p.decisionDate === selectedDay), [payload, selectedDay])
   const chartRows = useMemo(() => daySeries.map((p) => ({ ...p, timeLabel: new Date(p.deliveryTime).toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' }) })), [daySeries])
   const dailyRows = payload?.daily || []
-  const sourceFresh = Boolean(payload && !error)
+  const connectionStatus = error ? 'DATA UNAVAILABLE' : loading ? 'UPDATING' : payload ? 'DATA CONNECTED' : 'NO DATA'
 
   function exportCsv() {
     const rows = payload?.series || []
@@ -48,7 +48,7 @@ function App() {
     const link = document.createElement('a')
     link.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' }))
     link.download = `wind-ledger-${month}-decision-cutoff-${cutoff.replace(':', '')}.csv`
-    link.click(); URL.revokeObjectURL(link.href)
+    link.click(); window.setTimeout(() => URL.revokeObjectURL(link.href), 1000)
   }
 
   return <div className="shell">
@@ -61,14 +61,14 @@ function App() {
     </aside>
 
     <main className="main">
-      <header className="topbar"><div className="crumb"><span>Energy analytics</span><span className="crumb-slash">/</span><strong>Wind forecast</strong></div><div className="top-right"><div className="live-indicator"><span className={`status-dot ${loading ? 'busy' : ''}`}/>{loading ? 'UPDATING' : 'DATA CONNECTED'}</div><div className="avatar">WL</div></div></header>
+      <header className="topbar"><div className="crumb"><span>Energy analytics</span><span className="crumb-slash">/</span><strong>Wind forecast</strong></div><div className="top-right"><div className="live-indicator"><span className={`status-dot ${loading ? 'busy' : error ? 'error' : ''}`}/>{connectionStatus}</div><div className="avatar">WL</div></div></header>
 
       <section className="content">
-        <div className="heading-row"><div><div className="eyebrow"><span className="eyebrow-mark"/>DAY-AHEAD PROCUREMENT</div><h1>Wind forecast review</h1><p className="subtitle">See what was known at decision time. Measure what happened at delivery.</p></div><div className="heading-actions"><button className="button button-quiet" onClick={loadData} disabled={loading}><RefreshCw size={15} className={loading ? 'spin' : ''}/>Refresh</button><button className="button button-dark" onClick={exportCsv} disabled={!payload?.series?.length}><Download size={15}/>Export data</button></div></div>
+        <div className="heading-row"><div><div className="eyebrow"><span className="eyebrow-mark"/>DAY-AHEAD PROCUREMENT</div><h1>Wind forecast review</h1><p className="subtitle">See what was known at decision time. Measure what happened at delivery.</p></div><div className="heading-actions"><button className="button button-quiet" onClick={() => loadData(true)} disabled={loading}><RefreshCw size={15} className={loading ? 'spin' : ''}/>Refresh</button><button className="button button-dark" onClick={exportCsv} disabled={!payload?.series?.length}><Download size={15}/>Export data</button></div></div>
 
         <section className="control-bar" aria-label="Analysis controls"><div className="control-item"><div className="control-icon"><CalendarDays size={16}/></div><label htmlFor="month">DECISION MONTH</label><input id="month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} /></div><div className="control-divider"/><div className="control-item cutoff-control"><div className="control-icon"><Clock3 size={16}/></div><label htmlFor="cutoff">DECISION CUTOFF</label><input id="cutoff" type="time" value={cutoff} onChange={(e) => setCutoff(e.target.value)} /><span className="tz-tag">UK</span></div><div className="control-spacer"/><div className="assumption-note"><Info size={15}/><span>Default 12:30 is an assumption. Adjust to match your buying window.</span></div></section>
 
-        {error ? <div className="error-panel"><div className="error-icon"><Info size={19}/></div><div><strong>We couldn’t load the Elexon data</strong><p>{error}</p><button className="text-button" onClick={loadData}>Try again <ArrowUpRight size={13}/></button></div></div> : <>
+        {error ? <div className="error-panel"><div className="error-icon"><Info size={19}/></div><div><strong>We couldn’t load the Elexon data</strong><p>{error}</p><button className="text-button" onClick={() => loadData(true)}>Try again <ArrowUpRight size={13}/></button></div></div> : <>
           <div className="section-label-row"><div><span className="section-kicker">01</span><h2>Accuracy at a glance</h2></div><span className="period-chip"><span className="mini-dot"/>{monthLabel(month)} · Decision dates</span></div>
           <div className="metric-grid">
             <MetricCard label="MEAN ABSOLUTE ERROR" value={metrics?.maeMw} suffix="MW" sub="Typical miss per matched interval" icon={<Activity size={16}/>} loading={loading} />
