@@ -32,7 +32,11 @@ function App() {
     finally { if (currentRequest === requestId.current) setLoading(false) }
   }
 
-  useEffect(() => { loadData() }, [month, cutoff])
+  useEffect(() => {
+    const validMonth = /^\d{4}-(0[1-9]|1[0-2])$/.test(month)
+    const validCutoff = /^([01]\d|2[0-3]):[0-5]\d$/.test(cutoff)
+    if (validMonth && validCutoff) loadData()
+  }, [month, cutoff])
 
   const metrics = payload?.metrics
   const daySeries = useMemo(() => (payload?.series || []).filter((p) => p.decisionDate === selectedDay), [payload, selectedDay])
