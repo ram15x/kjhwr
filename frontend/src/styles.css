@@ -17,3 +17,9 @@
 .cutoff-control label{grid-column:2/4;grid-row:1}
 .cutoff-control input{grid-column:2;grid-row:2}
 .cutoff-control .tz-tag{grid-column:3;grid-row:2;justify-self:start;margin-left:0}
+
+.decision-snapshot{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:17px 0 1px;border:1px solid #e6e9e2;border-radius:7px;background:#f8faf6;overflow:hidden}
+.snapshot-note{margin:0 0 1px;padding:6px 1px 0;color:#93988e;font-size:8px}
+.snapshot-item{min-height:61px;padding:11px 13px;border-right:1px solid #e2e6df}
+.snapshot-item:last-child{border-right:0}.snapshot-item span{display:block;color:#899287;font:500 7px 'DM Mono',monospace;letter-spacing:.55px;margin-bottom:7px}.snapshot-item strong{color:#344238;font:700 17px Manrope,sans-serif;letter-spacing:-.35px}.snapshot-item small{color:#879087;font-size:8px;margin-left:4px}
+@media(max-width:760px){.decision-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}.snapshot-item:nth-child(2){border-right:0}.snapshot-item:nth-child(-n+2){border-bottom:1px solid #e2e6df}.snapshot-item strong{font-size:15px}}
