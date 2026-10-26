@@ -4,7 +4,7 @@ A day-ahead wind forecast review dashboard for the UK electricity market. It ali
 
 ## Scope and assumptions
 
-- The selected month means **decision dates** in that month. A decision on date D is evaluated against delivery on D+1.
+- The selected month means **decision dates** in that month. A decision on date D is evaluated against delivery on D+1. The challenge analysis is scoped to January 2026.
 - The default decision cutoff is **12:30 Europe/London**. The challenge does not specify a precise trading cutoff; this is an explicit, adjustable analysis assumption, not a client-confirmed rule.
 - For each delivery hour, the app selects the latest WINDFOR row with `publishTime` at or before the decision cutoff. The January 2026 stream response has hourly `startTime` values, while FUELHH has half-hourly values; the app averages the two half-hour actual MW values to form an hourly actual before scoring. If either half-hour actual is missing, that hourly pair is omitted from error metrics and reduces coverage. No later forecast revision is used in the decision-time score.
 - Actuals are national FUELHH rows filtered to `fuelType=WIND`. If Elexon returns multiple revisions for an interval, the latest published row in the requested window is used. The request includes actual publications through two days after the final delivery date; this bounded window is an implementation assumption.
@@ -29,16 +29,23 @@ The backend calls Elexon's public BMRS Insights API ([WINDFOR stream](https://bm
 ## Repository layout
 
 - `backend/app/main.py` — HTTP API, Elexon retrieval, interval alignment, metrics, caching.
-- `frontend/src/` — React dashboard and chart components.
+- `backend/app/__init__.py` — Python package marker.
+- `backend/requirements.txt` — Python dependencies.
+- `frontend/src/` — React dashboard and charts (the charts are implemented in the dashboard source).
 - `frontend/index.html` — application shell.
-- `docker-compose.yml`, `Dockerfile` — local container orchestration and production image.
-- `README.md` — scope, assumptions, and setup.
+- `frontend/package.json`, `frontend/package-lock.json` — frontend dependencies and lockfile.
+- `frontend/vite.config.js` — Vite development/build configuration.
+- `Dockerfile`, `docker-compose.yml`, `.dockerignore` — container image and local orchestration.
+- `vercel.json` — Vercel frontend/backend routing and service configuration.
+- `README.md` — scope, assumptions, setup, and deployment information.
 
 ## Deployment
 
+Live app: [https://gridbricks-wind-forecast-sable.vercel.app/](https://gridbricks-wind-forecast-sable.vercel.app/)
+
 For Vercel, the root `vercel.json` defines the Vite frontend and FastAPI backend as two services under one deployment URL. Select the **Services** framework when importing the repository if Vercel does not select it automatically. Requests to `/api/*` go to FastAPI; all other paths go to the frontend. Vercel Services is currently in beta.
 
-The Docker image also serves the built React app and Python API from one process on container hosts such as Heroku. It listens on the host-provided `PORT` (default 8080). Add the deployed URL here after deployment.
+The Docker image also serves the built React app and Python API from one process on container hosts such as Heroku. It listens on the host-provided `PORT` (default 8080).
 
 ## AI assistance
 
