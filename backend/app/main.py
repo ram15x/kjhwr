@@ -124,10 +124,10 @@ async def load_month(month: str) -> dict[str, Any]:
             "forecast_rows": len(forecasts), "actual_rows": len(actuals)}
 
 
-async def get_month_data(month: str) -> dict[str, Any]:
+async def get_month_data(month: str, force_refresh: bool = False) -> dict[str, Any]:
     async with _cache_lock:
         cached = _cache.get(month)
-        if cached and asyncio.get_running_loop().time() - cached[0] < CACHE_SECONDS:
+        if not force_refresh and cached and asyncio.get_running_loop().time() - cached[0] < CACHE_SECONDS:
             return cached[1]
         task = _pending.get(month)
         if task is None:
@@ -215,10 +215,11 @@ async def health() -> dict[str, str]:
 
 @app.get("/api/analysis")
 async def analysis(month: str = Query("2026-01", pattern=r"^\d{4}-\d{2}$"),
-                   cutoff: str = Query("12:30", pattern=r"^([01]\d|2[0-3]):[0-5]\d$")) -> dict[str, Any]:
+                   cutoff: str = Query("12:30", pattern=r"^([01]\d|2[0-3]):[0-5]\d$"),
+                   refresh: bool = Query(False)) -> dict[str, Any]:
     try:
         parsed_cutoff = time.fromisoformat(cutoff)
-        data = await get_month_data(month)
+        data = await get_month_data(month, force_refresh=refresh)
         return evaluate_month(data, parsed_cutoff)
     except HTTPException:
         raise
