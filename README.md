@@ -22,6 +22,16 @@ Prerequisites: Python 3.10+, Node.js 20+, and Docker (optional).
 
 To run both services in Docker, use `docker compose up --build` from the repository root and open `http://localhost:8080`.
 
+## Test
+
+Run the backend logic and cache tests from the repository root:
+
+```bash
+python -m unittest discover -s backend/tests -v
+```
+
+Build the production frontend with `cd frontend && npm run build`. The test suite covers cutoff-aware revision selection, hourly actual aggregation, missing data, daylight-saving delivery-hour counts, cache reuse, forced refresh, concurrent loads, and recovery after an upstream failure.
+
 ## Data source
 
 The backend calls Elexon's public BMRS Insights API ([WINDFOR stream](https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/WINDFOR/stream) and [FUELHH stream](https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/FUELHH/stream)). It requests bounded publication-time windows, including a two-day forecast lead-in for the first decision date, so eligible earlier revisions can be considered without using information published after the decision. Actual revisions are selected from a publication window ending two days after the last delivery day. No API key is required by the public Insights API.
@@ -30,14 +40,15 @@ The backend calls Elexon's public BMRS Insights API ([WINDFOR stream](https://bm
 
 - `backend/app/main.py` — HTTP API, Elexon retrieval, interval alignment, metrics, caching.
 - `backend/app/__init__.py` — Python package marker.
+- `backend/tests/` — backend analysis and cache unit tests.
 - `backend/requirements.txt` — Python dependencies.
-- `frontend/src/` — React dashboard and charts (the charts are implemented in the dashboard source).
+- `frontend/src/` — React dashboard and charts, including the selected-day decision snapshot.
 - `frontend/index.html` — application shell.
 - `frontend/package.json`, `frontend/package-lock.json` — frontend dependencies and lockfile.
 - `frontend/vite.config.js` — Vite development/build configuration.
 - `Dockerfile`, `docker-compose.yml`, `.dockerignore` — container image and local orchestration.
 - `vercel.json` — Vercel frontend/backend routing and service configuration.
-- `README.md` — scope, assumptions, setup, and deployment information.
+- `README.md` — scope, assumptions, setup, testing, and deployment information.
 
 ## Deployment
 
