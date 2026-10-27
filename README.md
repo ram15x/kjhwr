@@ -13,14 +13,43 @@ A day-ahead wind forecast review dashboard for the UK electricity market. It ali
 
 ## Run locally
 
-Prerequisites: Python 3.10+, Node.js 20+, and Docker (optional).
+Prerequisites for native development: Python 3.10+ and Node.js 20+. For the container workflow, install Docker Desktop (or Docker Engine) with Docker Compose.
 
-1. Backend: `cd backend`, create/activate a virtual environment, then run `pip install -r requirements.txt`.
-2. Start the API: `uvicorn app.main:app --reload --port 8000`.
-3. Frontend: in another terminal, `cd frontend`, run `npm ci` and `npm run dev`.
-4. Open the Vite URL shown in the terminal. The frontend proxies `/api` calls to `http://localhost:8000`.
+### Run the complete app with Docker
 
-To run both services in Docker, use `docker compose up --build` from the repository root and open `http://localhost:8080`.
+From the repository root:
+
+```bash
+docker compose up --build
+```
+
+Open [http://localhost:8080](http://localhost:8080). The container builds the React app and serves it with the Python API. Stop it with `Ctrl+C`; run `docker compose down` to remove the stopped container.
+
+### Run frontend and backend separately
+
+In terminal 1, install and start the API:
+
+```bash
+cd backend
+python -m venv .venv
+```
+
+Activate the virtual environment (`.venv\Scripts\Activate.ps1` in Windows PowerShell, or `source .venv/bin/activate` on macOS/Linux), then run:
+
+```bash
+python -m pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+In terminal 2, install and start the React development server:
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Open the Vite URL printed in terminal 2 (normally [http://localhost:5173](http://localhost:5173)). Vite proxies `/api` requests to `http://localhost:8000`. The API health endpoint is `/api/health`; the analysis endpoint accepts `month` and `cutoff`, for example `/api/analysis?month=2026-01&cutoff=12:30`.
 
 ## Test
 
@@ -52,11 +81,15 @@ The backend calls Elexon's public BMRS Insights API ([WINDFOR stream](https://bm
 
 ## Deployment
 
-Live app: [https://gridbricks-wind-forecast-sable.vercel.app/](https://gridbricks-wind-forecast-sable.vercel.app/)
+**Live Vercel app:** [https://gridbricks-wind-forecast-sable.vercel.app/](https://gridbricks-wind-forecast-sable.vercel.app/)
 
-For Vercel, the root `vercel.json` defines the Vite frontend and FastAPI backend as two services under one deployment URL. Select the **Services** framework when importing the repository if Vercel does not select it automatically. Requests to `/api/*` go to FastAPI; all other paths go to the frontend. Vercel Services is currently in beta.
+**Public source repo:** [https://github.com/ram15x/kjhwr](https://github.com/ram15x/kjhwr)
 
-The Docker image also serves the built React app and Python API from one process on container hosts such as Heroku. It listens on the host-provided `PORT` (default 8080).
+The existing production app is deployed on Vercel from this repository. The root [`vercel.json`](vercel.json) declares the frontend and FastAPI backend services on one Vercel deployment: `/api/*` routes to the backend and other paths route to the React frontend. The app uses Elexon's public API and has no application secrets or API keys to configure.
+
+To recreate the deployment, import `ram15x/kjhwr` into Vercel, keep the repository root as the project root, and use the Services configuration defined in `vercel.json`. The framework setting must use **Services** if Vercel does not detect it automatically. Vercel currently documents Services as a private beta that may require access to be enabled for a team; see the [Vercel Services documentation](https://vercel.com/docs/services). For the already-created project, check its Vercel Deployments page after a push to the configured production branch and confirm the deployment is Ready before sharing the app link.
+
+The Docker image can also run on a container host. It serves the built React app and Python API from one process, listens on the platform-provided `PORT` (default `8080`), and can be built locally with `docker compose up --build`.
 
 ## AI assistance
 
